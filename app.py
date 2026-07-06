@@ -1,7 +1,7 @@
 import json
 import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import numpy as np
 import pandas as pd
@@ -9,6 +9,14 @@ import plotly.graph_objects as go
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
+
+# Módulos da projeção de preço futuro (dólar futuro + CBOT futuro + basis
+# projetado). Precisam estar na mesma pasta deste arquivo: basis_model.py,
+# fontes_dolar.py, fontes_cbot.py, projecao.py.
+import basis_model as bm
+import fontes_dolar as fd
+import fontes_cbot as fc
+import projecao as pj
 
 st.set_page_config(
     page_title="AgroBasis | Basis da Soja",
@@ -1054,6 +1062,135 @@ def calcular_analytics(df, cidade):
     }
 
 # ============================================================
+# PROJEÇÃO DE PREÇO FUTURO (dólar futuro x CBOT futuro x basis projetado)
+# ============================================================
+def preparar_basis_hist_para_projecao(df_basis, cidade):
+    """Adapta o df_basis (long, multi-cidade) para o formato esperado
+    pelos módulos de projeção: colunas 'Data' e 'basis_usd_bushel'."""
+    d = df_basis[df_basis["Cidade"] == cidade][["Data", "Basis_cents_bu"]].copy()
+    d["basis_usd_bushel"] = d["Basis_cents_bu"] / 100.0
+    return d.dropna(subset=["basis_usd_bushel"]).sort_values("Data").reset_index(drop=True)
+
+
+def grafico_linha_precos_proj(curva_diaria, mensal):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=curva_diaria["data"], y=curva_diaria["preco_rs_saca"],
+        mode="lines", line=dict(color="#102a83", width=3),
+        name="Curva projetada diária",
+        hovertemplate="<b>%{x|%d/%m/%Y}</b><br>R$ %{y:.2f}/saca<extra></extra>",
+    ))
+    fig.add_trace(go.Scatter(
+        x=mensal["data_ref"], y=mensal["preco_medio_rs_saca"],
+        mode="markers+text",
+        text=[f"{r}<br>R$ {v:.2f}".replace(".", ",") for r, v in zip(mensal["referencia"], mensal["preco_medio_rs_saca"])],
+        textposition="top center",
+        textfont=dict(size=11, color="#111827", family="Inter, sans-serif"),
+        marker=dict(size=10, color="#d97706", line=dict(width=2, color="#fff")),
+        name="Média do mês",
+        hovertemplate="<b>%{customdata}</b><br>Média do mês: R$ %{y:.2f}/saca<extra></extra>",
+        customdata=mensal["referencia"],
+    ))
+    fig.update_layout(
+        template="plotly_white", height=560,
+        title=dict(text="Curva de preço futuro projetado — R$/saca", x=0.02,
+                    font=dict(size=15, color="#111827", family="Inter, sans-serif")),
+        paper_bgcolor="#ffffff", plot_bgcolor="#ffffff",
+        font=dict(color="#374151", family="Inter, sans-serif", size=12),
+        margin=dict(l=55, r=24, t=70, b=50),
+        legend=dict(orientation="h", y=-0.16, x=0.5, xanchor="center", bgcolor="rgba(0,0,0,0)"),
+        xaxis=dict(showgrid=False, title="", linecolor="#e8eaed"),
+        yaxis=dict(title="R$/saca", gridcolor="rgba(229,231,235,0.9)", tickprefix="R$ "),
+        hovermode="x unified",
+    )
+    return fig
+
+
+def grafico_barras_precos_proj(mensal):
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=mensal["referencia"], y=mensal["preco_medio_rs_saca"],
+        marker_color="#16a34a",
+        text=[f"R$ {v:.2f}".replace(".", ",") for v in mensal["preco_medio_rs_saca"]],
+        textposition="outside",
+        textfont=dict(size=13, color="#111827", family="Inter, sans-serif"),
+        hovertemplate="<b>%{x}</b><br>R$ %{y:.2f}/saca<extra></extra>",
+    ))
+    y_max = mensal["preco_medio_rs_saca"].max()
+    fig.update_layout(
+        template="plotly_white", height=520,
+        title=dict(text="Projeção de preço médio por mês futuro — R$/saca", x=0.02,
+                    font=dict(size=15, color="#111827", family="Inter, sans-serif")),
+        paper_bgcolor="#ffffff", plot_bgcolor="#ffffff",
+        font=dict(color="#374151", family="Inter, sans-serif", size=12),
+        margin=dict(l=55, r=24, t=70, b=50),
+        xaxis=dict(title="", showgrid=False, linecolor="#e8eaed"),
+        yaxis=dict(title="R$/saca", gridcolor="rgba(229,231,235,0.9)", tickprefix="R$ ",
+                    range=[0, y_max * 1.18]),
+        showlegend=False,
+    )
+    return fig
+
+
+@st.cache_data(ttl=900)
+def montar_projecao_completa(_df_basis_hist_proj, ultimo_cbot_hist, cidade, meses_proj, auto_dol, auto_cbot,
+                              anos_janela_basis, dias_janela_basis, ts_cache_key):
+    """Busca dólar/CBOT e monta a curva projetada. ts_cache_key participa do
+    hash de cache (junto com os demais parâmetros) e força recálculo quando
+    a hora muda; _df_basis_hist_proj é ignorado no hash por ser DataFrame."""
+    cotacao = fd.fetch_cotacao_atual()
+    hist_dolar = fd.fetch_historico_resumo(35)
+    if cotacao:
+        spot_dolar = cotacao["bid"]
+        fonte_dolar_spot = cotacao.get("fonte", "?")
+    elif not hist_dolar.empty:
+        spot_dolar = float(hist_dolar["close"].iloc[-1])
+        fonte_dolar_spot = "histórico (fallback)"
+    else:
+        return None
+
+    cbot_spot = fc.fetch_cbot_spot_atual()
+    if cbot_spot:
+        cbot_ancora = cbot_spot["preco"]
+        fonte_cbot_spot = cbot_spot["fonte"]
+    else:
+        cbot_ancora = float(ultimo_cbot_hist)
+        fonte_cbot_spot = "histórico (fallback - pode estar desatualizado)"
+
+    data_base = pd.Timestamp(cotacao["ts"]).normalize() if cotacao else pd.Timestamp.now().normalize()
+    datas_mensais = fd.gerar_datas_mensais(data_base, meses_proj)
+
+    curva_dol_default, fontes_dol, avisos_dol, _ = fd.montar_curva_dol_base(datas_mensais, spot_dolar, auto_dol=auto_dol)
+    curva_zs_default, fontes_zs, avisos_zs, _ = fc.montar_curva_zs_base(datas_mensais, cbot_ancora, auto_cbot=auto_cbot)
+
+    curva_dol_prep = fd.preparar_curva_dol(curva_dol_default, datas_mensais)
+    curva_dolar_diaria, _ = fd.calcular_curva_diaria_e_mensal(spot_dolar, curva_dol_prep, meses_proj, data_base)
+
+    curva_zs_prep = curva_zs_default.copy()
+    curva_zs_prep["data"] = datas_mensais
+    curva_cbot_diaria = pj.calcular_curva_cbot_diaria(cbot_ancora, curva_zs_prep, meses_proj, data_base)
+
+    projecao_diaria = pj.montar_projecao_precos(
+        data_base, meses_proj, curva_dolar_diaria[["data", "ndf"]], curva_cbot_diaria,
+        _df_basis_hist_proj, anos_janela=anos_janela_basis, dias_janela=dias_janela_basis,
+    )
+    mensal = pj.resumo_mensal(projecao_diaria)
+
+    return {
+        "projecao_diaria": projecao_diaria,
+        "mensal": mensal,
+        "spot_dolar": spot_dolar,
+        "fonte_dolar_spot": fonte_dolar_spot,
+        "cbot_ancora": cbot_ancora,
+        "fonte_cbot_spot": fonte_cbot_spot,
+        "avisos": avisos_dol + avisos_zs,
+        "fontes": fontes_dol + fontes_zs,
+        "data_base": data_base,
+        "curva_dol": curva_dol_default,
+        "curva_cbot": curva_zs_default,
+    }
+
+# ============================================================
 # UI
 # ============================================================
 
@@ -1139,13 +1276,107 @@ if not atual.empty:
     """, unsafe_allow_html=True)
 
 # ── Tabs ──
-tab_basis, tab_mapa = st.tabs(["Basis", "Mapa"])
+tab_basis, tab_projecao, tab_mapa = st.tabs(["Basis", "Projeção", "Mapa"])
 
 with tab_basis:
     st.markdown('<div class="chart-wrap">', unsafe_allow_html=True)
     fig = grafico_basis(df=df_basis, cidade=cidade_sel, anos=anos_sel, suavizar_atual=suavizar_atual, suavizar_media=suavizar_media)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
     st.markdown('</div>', unsafe_allow_html=True)
+
+with tab_projecao:
+    p1, p2, p3, p4 = st.columns(4)
+    with p1:
+        meses_proj = st.slider("Projeção (meses)", 3, 18, 12, 1, key="proj_meses")
+    with p2:
+        auto_dol = st.checkbox("Dólar automático", value=True, key="proj_auto_dol")
+    with p3:
+        auto_cbot = st.checkbox("CBOT automático", value=True, key="proj_auto_cbot")
+    with p4:
+        col_anos, col_dias = st.columns(2)
+        with col_anos:
+            anos_janela_basis = st.slider("Basis: nº anos", 3, 8, 5, 1, key="proj_anos_janela")
+        with col_dias:
+            dias_janela_basis = st.slider("Basis: janela (d)", 1, 15, 5, 1, key="proj_dias_janela")
+
+    df_basis_proj = preparar_basis_hist_para_projecao(df_basis, cidade_sel)
+    ultimo_cbot_hist = float(df_basis[df_basis["CBOT_USD_bu"].notna()].sort_values("Data")["CBOT_USD_bu"].iloc[-1])
+
+    if df_basis_proj.empty:
+        st.warning(f"Não há histórico de basis suficiente para {cidade_sel} para projetar.")
+    else:
+        cache_key = f"{cidade_sel}-{meses_proj}-{auto_dol}-{auto_cbot}-{anos_janela_basis}-{dias_janela_basis}-{datetime.now().strftime('%Y%m%d%H')}"
+        with st.spinner("Buscando dólar e CBOT futuros..."):
+            resultado = montar_projecao_completa(
+                df_basis_proj, ultimo_cbot_hist, cidade_sel, meses_proj, auto_dol, auto_cbot,
+                anos_janela_basis, dias_janela_basis, cache_key,
+            )
+
+        if resultado is None:
+            st.error("Não foi possível obter a cotação do dólar por nenhuma fonte.")
+        else:
+            if resultado["avisos"]:
+                st.warning(" · ".join(resultado["avisos"]))
+            if resultado["fontes"]:
+                st.caption("Fontes: " + " · ".join(resultado["fontes"]))
+
+            projecao_diaria = resultado["projecao_diaria"]
+            mensal = resultado["mensal"]
+            preco_hoje = projecao_diaria.sort_values("data").iloc[0]["preco_rs_saca"]
+            preco_12m = mensal.iloc[min(11, len(mensal) - 1)]["preco_medio_rs_saca"]
+
+            st.markdown(f"""
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div class="kpi-label">Dólar spot</div>
+                    <div class="kpi-value">R$ {resultado['spot_dolar']:.4f}</div>
+                    <div class="kpi-sub">{resultado['fonte_dolar_spot']}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">CBOT spot atual</div>
+                    <div class="kpi-value">US$ {resultado['cbot_ancora']:.2f}/bu</div>
+                    <div class="kpi-sub">{resultado['fonte_cbot_spot']}</div>
+                </div>
+                <div class="kpi-card highlight">
+                    <div class="kpi-label">Preço projetado hoje</div>
+                    <div class="kpi-value">R$ {preco_hoje:.2f}</div>
+                    <div class="kpi-sub">por saca — {cidade_sel}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Projeção 12 meses</div>
+                    <div class="kpi-value">R$ {preco_12m:.2f}</div>
+                    <div class="kpi-sub">por saca</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown('<div class="chart-wrap">', unsafe_allow_html=True)
+            st.plotly_chart(grafico_linha_precos_proj(projecao_diaria, mensal), use_container_width=True,
+                             config={"displayModeBar": False})
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            st.markdown('<div class="chart-wrap">', unsafe_allow_html=True)
+            st.plotly_chart(grafico_barras_precos_proj(mensal), use_container_width=True,
+                             config={"displayModeBar": True, "displaylogo": False,
+                                      "toImageButtonOptions": {"format": "png", "scale": 2,
+                                                                "filename": f"projecao_{cidade_sel}"}})
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            with st.expander("⚙️ Ver / editar curvas usadas no cálculo (dólar e CBOT)"):
+                st.markdown("**Dólar futuro (DOL)**")
+                st.dataframe(resultado["curva_dol"], use_container_width=True, hide_index=True)
+                st.markdown("**CBOT (ZS, US$/bushel)**")
+                st.dataframe(resultado["curva_cbot"], use_container_width=True, hide_index=True)
+
+            with st.expander("ℹ️ Metodologia da projeção"):
+                st.markdown(f"""
+- **Preço projetado (R$/saca)** = [CBOT futuro (US$/bushel) + basis projetado] × 2,2046 × câmbio futuro (R$/US$)
+- **Basis projetado**: média das observações de basis de **{cidade_sel}** dentro de uma janela de ±{dias_janela_basis} dias-calendário em torno da mesma data, nos últimos {anos_janela_basis} anos
+- **Dólar futuro**: contratos DOL da B3 via TradingView, interpolados por dias úteis (fallback manual se a busca falhar)
+- **CBOT futuro**: contratos ZS via TradingView, mesma lógica de interpolação
+
+> ⚠️ Simulador informativo/educacional. Não representa recomendação de investimento nem preço negociável de hedge.
+                """)
 
 with tab_mapa:
     st.markdown('<div class="chart-wrap">', unsafe_allow_html=True)
@@ -1155,4 +1386,3 @@ with tab_mapa:
     else:
         st.plotly_chart(fig_mapa, use_container_width=True, config={"displayModeBar": False})
     st.markdown('</div>', unsafe_allow_html=True)
-
