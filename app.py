@@ -31,7 +31,7 @@ st.set_page_config(
 # Leitura via Google Sheets
 # Link da planilha:
 # https://docs.google.com/spreadsheets/d/19Xj98vTyWh3X4y1MW_qq8s5EYHKsT2Av1QOPVm7Abnk/edit
-SHEET_ID = "19Xj98vTyWh3X4y1MW_qq8s5EYHKsT2Av1QOPVm7Abnk"
+SHEET_ID = "1nj__9QGMMXR3L8L0PaP6wnPYxztDgtu0T9cKWg2jjOY"
 ABA_DADOS = "fechamento_usd_bushel"
 
 SCOPES = [
