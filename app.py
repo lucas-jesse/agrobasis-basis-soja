@@ -20,7 +20,6 @@ import projecao as pj
 
 st.set_page_config(
     page_title="AgroBasis | Basis da Soja",
-    page_icon="🌾",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -70,210 +69,125 @@ CIDADES_COORD = {
 }
 
 # ============================================================
-# CSS — visual institucional limpo
+# CORES OFICIAIS AGROBASIS
 # ============================================================
-st.markdown("""
+VERDE_PRINCIPAL = "#1E4812"
+VERDE_SECUNDARIO = "#54931B"
+TEXTO = "#222222"
+DOURADO = "#A17149"
+PRETO = "#000000"
+FUNDO = "#F8FAF8"
+BORDA = "#E7ECE8"
+OLIVA = "#6B7F3A"
+MARROM_ESCURO = "#8A6A4F"
+
+PALETA = [VERDE_PRINCIPAL, VERDE_SECUNDARIO, DOURADO, TEXTO, PRETO, OLIVA, MARROM_ESCURO]
+
+# ============================================================
+# CSS — Design System AgroBasis v1.0
+# ============================================================
+st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700&display=swap');
 
-/* Base */
-html, body, [class*="css"] {
-    font-family: 'Inter', -apple-system, sans-serif;
-}
-.stApp {
-    background-color: #f7f8fa;
-}
-.block-container {
-    padding-top: 0 !important;
-    padding-bottom: 2rem;
-    padding-left: 2.5rem !important;
-    padding-right: 2.5rem !important;
+html, body, [class*="css"] {{ font-family: 'Geist', Arial, sans-serif; }}
+.stApp {{ background-color: {FUNDO}; color: {TEXTO}; }}
+.block-container {{
+    padding-top: 0.9rem !important; padding-bottom: 2rem;
+    padding-left: 2.5rem !important; padding-right: 2.5rem !important;
     max-width: 1600px;
-}
+}}
+section[data-testid="stSidebar"] {{ display: none; }}
+div[data-testid="stVerticalBlock"] > div:first-child {{ padding-top: 0; }}
 
-/* Barra de topo */
-.topbar {
-    background: #ffffff;
-    border-bottom: 1px solid #e8eaed;
-    padding: 0 0 0 0;
-    margin: 0 -2.5rem 1.0rem -2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 52px;
-    padding: 0 2.5rem;
-}
-.topbar-brand {
-    font-size: 15px;
-    font-weight: 600;
-    color: #111827;
-    letter-spacing: -0.02em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.topbar-brand span {
-    color: #16a34a;
-}
-.topbar-tag {
-    font-size: 11px;
-    color: #6b7280;
-    background: #f3f4f6;
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-weight: 500;
-    margin-left: 4px;
-}
+.page-badge {{
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Sora', Arial, sans-serif;
+    background: #EEF4E7; color: {VERDE_PRINCIPAL};
+    border: 1px solid #d7e6c9; border-radius: 999px;
+    padding: 6px 14px; font-size: 12px; font-weight: 700;
+    letter-spacing: .2px; margin-bottom: 10px;
+}}
 
-/* Filtros — barra horizontal compacta */
-.filter-bar {
-    background: #ffffff;
-    border: 1px solid #e8eaed;
-    border-radius: 10px;
-    padding: 14px 20px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
+.page-header {{ margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid {BORDA}; }}
+.page-header-title {{ font-family: 'Geist', Arial, sans-serif; font-size: 26px; font-weight: 800; color: {TEXTO}; margin-bottom: 4px; }}
+.page-header-subtitle {{ font-family: 'Sora', Arial, sans-serif; font-size: 14.5px; color: #6b6b6b; max-width: 720px; line-height: 1.5; }}
 
-/* KPI cards — compactos, linha única */
-.kpi-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-bottom: 10px;
-}
-.kpi-card {
-    background: #ffffff;
-    border: 1px solid #e8eaed;
-    border-radius: 10px;
-    padding: 9px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-.kpi-card.highlight {
-    border-left: 3px solid #16a34a;
-}
-.kpi-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: #9ca3af;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-.kpi-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: #111827;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-}
-.kpi-value.green { color: #16a34a; }
-.kpi-value.red { color: #dc2626; }
-.kpi-sub {
-    font-size: 10px;
-    color: #9ca3af;
-    font-weight: 400;
-}
+.filter-bar {{
+    background: #ffffff; border: 1px solid {BORDA}; border-radius: 18px;
+    padding: 16px 20px 6px 20px; margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(30,72,18,0.05);
+}}
+.stSelectbox label, .stMultiSelect label, .stSlider label, .stRadio label, .stCheckbox label {{
+    font-family: 'Sora', Arial, sans-serif;
+    font-size: 12.5px !important; font-weight: 600 !important; color: {TEXTO} !important;
+    text-transform: uppercase; letter-spacing: .05em;
+}}
+div[data-baseweb="select"] > div {{
+    background: #ffffff !important; border-color: {BORDA} !important;
+    border-radius: 10px !important; font-size: 13px;
+}}
+div[data-baseweb="select"] > div:hover {{ border-color: {VERDE_PRINCIPAL} !important; }}
+.stSlider > div > div > div {{ background: {VERDE_PRINCIPAL} !important; }}
 
-/* Card de gráfico */
-.chart-wrap {
-    background: #ffffff;
-    border: 1px solid #e8eaed;
-    border-radius: 10px;
-    padding: 4px 4px 0 4px;
-    margin-bottom: 4px;
-}
+.stButton > button, .stDownloadButton > button {{
+    border-radius: 12px !important;
+    font-family: 'Geist', Arial, sans-serif; font-size: 13px !important; font-weight: 700 !important;
+    background: #ffffff !important; color: {VERDE_PRINCIPAL} !important;
+    border: 1px solid {VERDE_PRINCIPAL} !important;
+    transition: background .15s ease, color .15s ease;
+}}
+.stButton > button:hover, .stDownloadButton > button:hover {{
+    background: {VERDE_SECUNDARIO} !important; color: #ffffff !important; border-color: {VERDE_SECUNDARIO} !important;
+}}
 
-/* Tabs */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 0;
-    border-bottom: 1px solid #e8eaed;
-    background: transparent;
-    padding: 0;
-    margin-bottom: 16px;
-}
-.stTabs [data-baseweb="tab"] {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    padding: 10px 18px;
-    color: #6b7280;
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: -1px;
-}
-.stTabs [aria-selected="true"] {
-    background: transparent !important;
-    color: #111827 !important;
-    border-bottom: 2px solid #16a34a !important;
-}
-.stTabs [data-baseweb="tab"]:hover {
-    color: #374151;
-    background: transparent;
-}
+.kpi-row {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }}
+.kpi-card {{
+    background: #ffffff; border: 1px solid {BORDA}; border-radius: 18px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+    box-shadow: 0 8px 24px rgba(30,72,18,0.04);
+}}
+.kpi-card.highlight {{ border-left: 3px solid {VERDE_PRINCIPAL}; }}
+.kpi-label {{
+    font-family: 'Sora', Arial, sans-serif; font-size: 11px; font-weight: 700;
+    color: #7a7a7a; text-transform: uppercase; letter-spacing: .06em;
+}}
+.kpi-value {{ font-family: 'Geist', Arial, sans-serif; font-size: 21px; font-weight: 800; color: {TEXTO}; line-height: 1.2; }}
+.kpi-value.green {{ color: {VERDE_PRINCIPAL}; }}
+.kpi-value.red {{ color: {MARROM_ESCURO}; }}
+.kpi-sub {{ font-family: 'Sora', Arial, sans-serif; font-size: 11px; color: #9a9a9a; font-weight: 500; }}
 
-/* Inputs */
-.stSelectbox label, .stMultiSelect label, .stSlider label, .stRadio label {
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    color: #6b7280 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-div[data-baseweb="select"] > div {
-    background: #f9fafb !important;
-    border-color: #e8eaed !important;
-    border-radius: 8px !important;
-    font-size: 13px;
-}
-div[data-baseweb="select"] > div:hover {
-    border-color: #9ca3af !important;
-}
-.stSlider > div > div > div {
-    background: #16a34a !important;
-}
-button[kind="secondary"] {
-    border-radius: 8px !important;
-    font-size: 13px !important;
-    border-color: #e8eaed !important;
-    color: #374151 !important;
-    background: #f9fafb !important;
-    font-weight: 500 !important;
-}
-button[kind="primary"] {
-    border-radius: 8px !important;
-    font-size: 13px !important;
-    background: #16a34a !important;
-    border: none !important;
-}
+.chart-wrap {{
+    background: #ffffff; border: 1px solid {BORDA}; border-radius: 18px;
+    padding: 8px 8px 0 8px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(30,72,18,0.04);
+}}
 
-/* Dataframe */
-.stDataFrame {
-    border: 1px solid #e8eaed;
-    border-radius: 10px;
-    overflow: hidden;
-}
+.stTabs [data-baseweb="tab-list"] {{
+    gap: 4px; background: #ffffff; padding: 6px; border-radius: 14px;
+    border: 1px solid {BORDA}; margin-bottom: 16px;
+}}
+.stTabs [data-baseweb="tab"] {{
+    background: transparent; border: none; border-radius: 10px;
+    padding: 10px 18px; color: #6b6b6b;
+    font-family: 'Geist', Arial, sans-serif; font-size: 13.5px; font-weight: 600;
+    transition: background .15s ease, color .15s ease;
+}}
+.stTabs [data-baseweb="tab"]:hover {{ background: rgba(84,147,27,0.10); color: {VERDE_PRINCIPAL}; }}
+.stTabs [aria-selected="true"] {{ background: {VERDE_PRINCIPAL} !important; color: #ffffff !important; }}
+.stTabs [aria-selected="true"]:hover {{ background: {VERDE_SECUNDARIO} !important; }}
 
-/* Download btn */
-.stDownloadButton > button {
-    border-radius: 8px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-}
+div[data-testid="stExpander"] {{ background: #ffffff; border-radius: 14px; border: 1px solid {BORDA}; }}
+.stDataFrame {{ border: 1px solid {BORDA}; border-radius: 14px; overflow: hidden; }}
+.stWarning, .stInfo, .stError {{ border-radius: 12px !important; font-family: 'Sora', Arial, sans-serif; font-size: 13px !important; }}
 
-/* Mensagens */
-.stWarning, .stInfo, .stError {
-    border-radius: 8px !important;
-    font-size: 13px !important;
-}
-
-/* Remover padding extra do main */
-section[data-testid="stSidebar"] { display: none; }
-div[data-testid="stVerticalBlock"] > div:first-child { padding-top: 0; }
+@media (max-width: 768px) {{
+    .block-container {{ padding-left: 0.9rem !important; padding-right: 0.9rem !important; padding-top: 0.5rem !important; }}
+    .page-header-title {{ font-size: 21px; }}
+    .kpi-row {{ grid-template-columns: repeat(2, 1fr); gap: 8px; }}
+    .kpi-value {{ font-size: 17px; }}
+    div[data-testid="stHorizontalBlock"] {{ flex-wrap: wrap !important; }}
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{ min-width: 45% !important; flex: 1 1 45% !important; }}
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -351,7 +265,6 @@ def fisico_rs_sc_para_cents_bushel(preco_rs_sc, ptax):
     return (preco_rs_sc / ptax) * (KG_POR_BUSHEL_SOJA / KG_POR_SACA) * 100
 
 
-# Séries disponíveis no gráfico principal
 SERIES_CONFIG = {
     "Basis": {
         "col": "Basis_cents_bu",
@@ -412,7 +325,6 @@ def worksheet_para_df(ws):
     dados = valores[1:]
     df = pd.DataFrame(dados, columns=cabecalho)
 
-    # Remove linhas totalmente vazias
     df = df.replace("", np.nan)
     df = df.dropna(how="all")
 
@@ -501,53 +413,65 @@ def montar_basis():
 # ============================================================
 # GRÁFICOS
 # ============================================================
-def media_5_anos(df, cidade, ano_base, janela=11):
+# NOTA DE MANUTENÇÃO: o arquivo original tinha DUAS definições de
+# `grafico_basis`. A primeira (mais simples, sem parâmetro `serie`,
+# com paleta de cores fora do Design System) nunca era executada — em
+# Python, a segunda definição de uma função com o mesmo nome sobrescreve
+# a primeira no namespace do módulo. Removida por ser código morto (mesma
+# classe de achado já feita na Curva do Dólar e no Spread Milho B3 nesta
+# padronização). A lógica de cálculo e o resultado visual desta versão
+# (a única que de fato executava) permanecem 100% preservados abaixo —
+# só as cores/fontes mudaram.
+def media_5_anos_generica(df, cidade, ano_base, coluna, janela=11):
     anos_hist = list(range(ano_base - 5, ano_base))
     hist = df[(df["Cidade"] == cidade) & (df["Ano"].isin(anos_hist))].copy()
-    if hist.empty:
+    if hist.empty or coluna not in hist.columns:
         return pd.DataFrame(columns=["DOY", "Media_5a"])
     media = (
-        hist.groupby("DOY", as_index=False)["Basis_cents_bu"]
+        hist.groupby("DOY", as_index=False)[coluna]
         .mean()
-        .rename(columns={"Basis_cents_bu": "Media_5a"})
+        .rename(columns={coluna: "Media_5a"})
         .sort_values("DOY")
     )
     media["Media_5a"] = media["Media_5a"].rolling(window=janela, center=True, min_periods=1).mean()
     return media
 
 
-def serie_ano(df, cidade, ano, suavizar=1):
+def serie_ano_generica(df, cidade, ano, coluna, suavizar=1):
     d = df[(df["Cidade"] == cidade) & (df["Ano"] == ano)].copy().sort_values("DOY")
+    if d.empty or coluna not in d.columns:
+        return pd.DataFrame()
     if suavizar and suavizar > 1:
-        d["Basis_plot"] = d["Basis_cents_bu"].rolling(window=suavizar, center=True, min_periods=1).mean()
+        d["Valor_plot"] = d[coluna].rolling(window=suavizar, center=True, min_periods=1).mean()
     else:
-        d["Basis_plot"] = d["Basis_cents_bu"]
+        d["Valor_plot"] = d[coluna]
     return d
 
 
-def grafico_basis(df, cidade, anos, suavizar_atual, suavizar_media):
+def grafico_basis(df, cidade, anos, suavizar_atual, suavizar_media, serie="Basis"):
+    cfg = SERIES_CONFIG.get(serie, SERIES_CONFIG["Basis"])
+    coluna = cfg["col"]
     ano_base = max(anos)
 
-    # Paleta institucional: ano mais recente verde, anterior azul-ardósia, demais cinza
     CORES = {
-        ano_base:     {"color": "#16a34a", "width": 2.4},
-        ano_base - 1: {"color": "#3b82f6", "width": 1.8},
-        ano_base - 2: {"color": "#f59e0b", "width": 1.6},
-        ano_base - 3: {"color": "#8b5cf6", "width": 1.4},
-        ano_base - 4: {"color": "#64748b", "width": 1.2},
-        ano_base - 5: {"color": "#94a3b8", "width": 1.0},
+        ano_base:     {"color": VERDE_PRINCIPAL, "width": 3.2},
+        ano_base - 1: {"color": VERDE_SECUNDARIO, "width": 2.4},
+        ano_base - 2: {"color": DOURADO, "width": 1.7},
+        ano_base - 3: {"color": OLIVA, "width": 1.4},
+        ano_base - 4: {"color": MARROM_ESCURO, "width": 1.2},
+        ano_base - 5: {"color": "#c9c9c9", "width": 1.0},
     }
 
     fig = go.Figure()
 
     for ano in sorted(anos):
-        d = serie_ano(df, cidade, ano, suavizar_atual)
+        d = serie_ano_generica(df, cidade, ano, coluna, suavizar_atual)
         if d.empty:
             continue
-        estilo = CORES.get(ano, {"color": "#94a3b8", "width": 1.2})
+        estilo = CORES.get(ano, {"color": "#9a9a9a", "width": 1.2})
         fig.add_trace(go.Scatter(
             x=d["DOY"],
-            y=d["Basis_plot"],
+            y=d["Valor_plot"],
             mode="lines",
             name=str(ano),
             line=dict(width=estilo["width"], color=estilo["color"]),
@@ -556,39 +480,38 @@ def grafico_basis(df, cidade, anos, suavizar_atual, suavizar_media):
                 "<b>%{customdata[0]}</b> · %{customdata[1]}<br>"
                 "Contrato: %{customdata[2]}<br>"
                 "Físico: %{customdata[3]:.1f} c/bu · CBOT: %{customdata[4]:.1f} c/bu<br>"
-                "<b>Basis: %{y:.1f} cents/bu</b><extra></extra>"
+                f"<b>{cfg['hover']}: " + "%{y:.1f} c/bu</b><extra></extra>"
             ),
             customdata=d[["Ano", "MesDia", "Contrato_Ref", "Fisico_cents_bu", "CBOT_cents_bu"]].values,
         ))
 
-    media = media_5_anos(df, cidade, ano_base, janela=suavizar_media)
-    if not media.empty:
-        fig.add_trace(go.Scatter(
-            x=media["DOY"],
-            y=media["Media_5a"],
-            mode="lines",
-            name=f"Média {ano_base-5}–{ano_base-1}",
-            line=dict(width=1.2, dash="dot", color="#d1d5db"),
-            hovertemplate="Média 5 anos<br>Basis: %{y:.1f} c/bu<extra></extra>",
-        ))
+    if cfg.get("media", True):
+        media = media_5_anos_generica(df, cidade, ano_base, coluna, janela=suavizar_media)
+        if not media.empty:
+            fig.add_trace(go.Scatter(
+                x=media["DOY"],
+                y=media["Media_5a"],
+                mode="lines",
+                name=f"Média {ano_base-5}–{ano_base-1}",
+                line=dict(width=2.2, dash="dot", color=DOURADO),
+                hovertemplate=f"Média 5 anos<br>{cfg['hover']}: " + "%{y:.1f} c/bu<extra></extra>",
+            ))
 
-    # Divisores de contrato
     for x, label in cortes_contratos_para_grafico(ano_base):
         fig.add_vline(
             x=x,
-            line_width=0.8,
+            line_width=1.2,
             line_dash="dash",
-            line_color="rgba(156, 163, 175, 0.5)"
+            line_color="rgba(34, 34, 34, 0.35)"
         )
         fig.add_annotation(
-            x=x, y=1.04, yref="paper",
-            text=f"<span style='font-size:10px;color:#9ca3af'>{label}</span>",
+            x=x, y=1.045, yref="paper",
+            text=label,
             showarrow=False,
-            font=dict(color="#9ca3af", size=10),
+            font=dict(color="#6b6b6b", size=11, family="Geist, Arial, sans-serif"),
         )
 
-    # Linha zero
-    fig.add_hline(y=0, line_width=0.8, line_color="rgba(107, 114, 128, 0.4)")
+    fig.add_hline(y=0, line_width=0.8, line_color="rgba(34, 34, 34, 0.35)")
 
     tickvals = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
     ticktext = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
@@ -596,29 +519,28 @@ def grafico_basis(df, cidade, anos, suavizar_atual, suavizar_media):
     fig.update_layout(
         template="plotly_white",
         title=dict(
-            text=f"Basis da soja — {cidade} × CBOT",
+            text=f"{cfg['label']} da soja — {cidade} × CBOT",
             x=0.02,
             xanchor="left",
-            y=0.97,
+            y=0.975,
             yanchor="top",
-            font=dict(size=15, color="#111827", family="Inter, sans-serif"),
+            font=dict(size=19, color=TEXTO, family="Geist, Arial, sans-serif"),
         ),
-        height=540,
+        height=650,
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
-        font=dict(color="#374151", family="Inter, sans-serif", size=12),
+        font=dict(color=TEXTO, family="Geist, Arial, sans-serif", size=12),
         legend=dict(
             orientation="h",
-            y=1.12,
-            x=1.0,
-            xanchor="right",
-            yanchor="top",
+            y=1.06,
+            x=0,
+            xanchor="left",
+            yanchor="bottom",
             bgcolor="rgba(0,0,0,0)",
             borderwidth=0,
-            font=dict(size=12, color="#374151"),
-            traceorder="reversed",
+            font=dict(size=12, color=TEXTO, family="Geist, Arial, sans-serif"),
         ),
-        margin=dict(l=60, r=24, t=90, b=50),
+        margin=dict(l=62, r=24, t=94, b=68),
         xaxis=dict(
             title="",
             tickmode="array",
@@ -626,33 +548,41 @@ def grafico_basis(df, cidade, anos, suavizar_atual, suavizar_media):
             ticktext=ticktext,
             showgrid=False,
             range=[1, 366],
-            tickfont=dict(size=11, color="#6b7280"),
-            linecolor="#e8eaed",
+            tickfont=dict(size=11, color="#6b6b6b"),
+            linecolor=BORDA,
             linewidth=1,
         ),
         yaxis=dict(
-            title="cents/bu",
-            gridcolor="rgba(229, 231, 235, 0.8)",
+            title=cfg["ytitle"],
+            gridcolor="rgba(34, 34, 34, 0.08)",
             zeroline=False,
-            tickfont=dict(size=11, color="#6b7280"),
-            title_font=dict(size=11, color="#9ca3af"),
+            tickfont=dict(size=11, color="#6b6b6b"),
+            title_font=dict(size=11, color="#6b6b6b"),
         ),
         hovermode="x unified",
         hoverlabel=dict(
             bgcolor="#ffffff",
-            bordercolor="#e8eaed",
-            font=dict(size=12, color="#111827", family="Inter, sans-serif"),
+            bordercolor=BORDA,
+            font=dict(size=12, color=TEXTO, family="Geist, Arial, sans-serif"),
         ),
     )
 
-    # Marca d'água discreta
     fig.add_annotation(
         text="AgroBasis",
         xref="paper", yref="paper",
-        x=0.5, y=0.5,
+        x=0.5, y=0.50,
         showarrow=False,
-        font=dict(size=72, color="rgba(0,0,0,0.035)", family="Inter, sans-serif"),
+        font=dict(size=78, color="rgba(30, 72, 18, 0.045)", family="Geist, Arial, sans-serif"),
         textangle=-20,
+    )
+
+    fig.add_annotation(
+        text="Fonte: Google Sheets · CBOT · PTAX · Elaboração: AgroBasis",
+        xref="paper", yref="paper",
+        x=1, y=-0.13,
+        showarrow=False,
+        font=dict(size=10.5, color="#9a9a9a", family="Geist, Arial, sans-serif"),
+        xanchor="right",
     )
     return fig
 
@@ -683,16 +613,16 @@ def grafico_mapa(df):
         customdata=mapa[["Basis_cents_bu", "Preco_Fisico_Rs_sc", "CBOT_USD_bu", "Contrato_Ref", "PTAX"]],
         mode="markers+text",
         textposition="top center",
-        textfont=dict(size=11, color="#374151", family="Inter, sans-serif"),
+        textfont=dict(size=11, color=TEXTO, family="Geist, Arial, sans-serif"),
         marker=dict(
             size=16,
             color=mapa["Basis_cents_bu"],
-            colorscale=[[0.0, "#fca5a5"], [0.5, "#fde68a"], [1.0, "#4ade80"]],
+            colorscale=[[0.0, MARROM_ESCURO], [0.5, "#F8FAF8"], [1.0, VERDE_PRINCIPAL]],
             colorbar=dict(
-                title=dict(text="Basis<br>cents/bu", font=dict(size=11, color="#6b7280")),
+                title=dict(text="Basis<br>cents/bu", font=dict(size=11, color="#6b6b6b")),
                 thickness=10,
                 len=0.6,
-                tickfont=dict(size=10, color="#6b7280"),
+                tickfont=dict(size=10, color="#6b6b6b"),
             ),
             line=dict(width=1, color="#ffffff"),
         ),
@@ -709,11 +639,11 @@ def grafico_mapa(df):
         scope="south america",
         projection_type="mercator",
         showcountries=True,
-        countrycolor="#e5e7eb",
+        countrycolor=BORDA,
         showland=True,
-        landcolor="#f9fafb",
+        landcolor=FUNDO,
         showocean=True,
-        oceancolor="#f0f9ff",
+        oceancolor="#eef1ee",
         showlakes=False,
         lataxis_range=[-35, 6],
         lonaxis_range=[-75, -32],
@@ -723,12 +653,12 @@ def grafico_mapa(df):
         title=dict(
             text=f"Basis por localidade — {ultima_data.strftime('%d/%m/%Y')}",
             x=0.02, xanchor="left",
-            font=dict(size=15, color="#111827", family="Inter, sans-serif"),
+            font=dict(size=15, color=TEXTO, family="Geist, Arial, sans-serif"),
         ),
         height=540,
         margin=dict(l=10, r=10, t=55, b=10),
         paper_bgcolor="#ffffff",
-        font=dict(family="Inter, sans-serif"),
+        font=dict(family="Geist, Arial, sans-serif", color=TEXTO),
     )
     return fig
 
@@ -770,6 +700,13 @@ def basis_mensal_referencia(df, cidade, ano_ref, tipo_basis):
 
 
 def grafico_preco_teorico(df_basis, df_raw, contratos, cidade, tipo_basis):
+    """
+    NOTA: função presente no código-fonte original mas não conectada à
+    interface hoje (mesmo status de "funcionalidade dormente" já
+    documentado na página HTML deste dashboard — aba "Preço futuro"
+    codificada, mas não exibida). Recolorida por consistência, caso seja
+    reativada no futuro, mas não é chamada em nenhum lugar da UI atual.
+    """
     curva = curva_cbot_atual(df_raw, contratos)
     if curva.empty:
         return None
@@ -791,12 +728,12 @@ def grafico_preco_teorico(df_basis, df_raw, contratos, cidade, tipo_basis):
         name="Preço teórico",
         marker=dict(
             color=curva["Preco_Teorico_USD_bu"],
-            colorscale=[[0.0, "#bbf7d0"], [0.5, "#4ade80"], [1.0, "#15803d"]],
+            colorscale=[[0.0, "#EEF4E7"], [0.5, VERDE_SECUNDARIO], [1.0, VERDE_PRINCIPAL]],
             line=dict(color="rgba(0,0,0,0)", width=0),
         ),
         text=[f"<b>{v:.2f}</b>" for v in curva["Preco_Teorico_USD_bu"]],
         textposition="outside",
-        textfont=dict(color="#374151", size=11, family="Inter, sans-serif"),
+        textfont=dict(color=TEXTO, size=11, family="Geist, Arial, sans-serif"),
         hovertemplate="<b>%{x}</b><br>Preço teórico: US$ %{y:.2f}/bu<extra></extra>",
     ))
     fig.add_trace(go.Scatter(
@@ -804,8 +741,8 @@ def grafico_preco_teorico(df_basis, df_raw, contratos, cidade, tipo_basis):
         y=curva["Preco_Teorico_USD_bu"],
         mode="lines+markers",
         name="",
-        line=dict(color="#374151", width=1.5, shape="spline", dash="dot"),
-        marker=dict(size=5, color="#374151"),
+        line=dict(color=DOURADO, width=1.5, shape="spline", dash="dot"),
+        marker=dict(size=5, color=DOURADO),
         hoverinfo="skip",
         showlegend=False,
     ))
@@ -814,192 +751,33 @@ def grafico_preco_teorico(df_basis, df_raw, contratos, cidade, tipo_basis):
         title=dict(
             text=f"Preço teórico CBOT + basis — {cidade}",
             x=0.02, xanchor="left",
-            font=dict(size=15, color="#111827", family="Inter, sans-serif"),
+            font=dict(size=15, color=TEXTO, family="Geist, Arial, sans-serif"),
         ),
         height=480,
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
-        font=dict(color="#374151", family="Inter, sans-serif", size=12),
+        font=dict(color=TEXTO, family="Geist, Arial, sans-serif", size=12),
         showlegend=False,
         bargap=0.32,
         margin=dict(l=60, r=24, t=70, b=55),
         yaxis=dict(
             title="US$/bushel",
-            gridcolor="rgba(229, 231, 235, 0.8)",
+            gridcolor="rgba(34, 34, 34, 0.08)",
             zeroline=False,
-            tickfont=dict(size=11, color="#6b7280"),
-            title_font=dict(size=11, color="#9ca3af"),
+            tickfont=dict(size=11, color="#6b6b6b"),
+            title_font=dict(size=11, color="#6b6b6b"),
         ),
         xaxis=dict(
             title="",
             showgrid=False,
-            tickfont=dict(size=11, color="#374151"),
-            linecolor="#e8eaed",
+            tickfont=dict(size=11, color=TEXTO),
+            linecolor=BORDA,
         ),
         hoverlabel=dict(
             bgcolor="#ffffff",
-            bordercolor="#e8eaed",
-            font=dict(size=12, color="#111827", family="Inter, sans-serif"),
+            bordercolor=BORDA,
+            font=dict(size=12, color=TEXTO, family="Geist, Arial, sans-serif"),
         ),
-    )
-    return fig
-
-
-# ============================================================
-# GRÁFICO PRINCIPAL — versão genérica por série
-# ============================================================
-def media_5_anos_generica(df, cidade, ano_base, coluna, janela=11):
-    anos_hist = list(range(ano_base - 5, ano_base))
-    hist = df[(df["Cidade"] == cidade) & (df["Ano"].isin(anos_hist))].copy()
-    if hist.empty or coluna not in hist.columns:
-        return pd.DataFrame(columns=["DOY", "Media_5a"])
-    media = (
-        hist.groupby("DOY", as_index=False)[coluna]
-        .mean()
-        .rename(columns={coluna: "Media_5a"})
-        .sort_values("DOY")
-    )
-    media["Media_5a"] = media["Media_5a"].rolling(window=janela, center=True, min_periods=1).mean()
-    return media
-
-
-def serie_ano_generica(df, cidade, ano, coluna, suavizar=1):
-    d = df[(df["Cidade"] == cidade) & (df["Ano"] == ano)].copy().sort_values("DOY")
-    if d.empty or coluna not in d.columns:
-        return pd.DataFrame()
-    if suavizar and suavizar > 1:
-        d["Valor_plot"] = d[coluna].rolling(window=suavizar, center=True, min_periods=1).mean()
-    else:
-        d["Valor_plot"] = d[coluna]
-    return d
-
-
-def grafico_basis(df, cidade, anos, suavizar_atual, suavizar_media, serie="Basis"):
-    cfg = SERIES_CONFIG.get(serie, SERIES_CONFIG["Basis"])
-    coluna = cfg["col"]
-    ano_base = max(anos)
-
-    CORES = {
-        ano_base:     {"color": "#102a83", "width": 3.2},
-        ano_base - 1: {"color": "#8b5cf6", "width": 2.4},
-        ano_base - 2: {"color": "#b45309", "width": 1.7},
-        ano_base - 3: {"color": "#64748b", "width": 1.4},
-        ano_base - 4: {"color": "#94a3b8", "width": 1.2},
-        ano_base - 5: {"color": "#cbd5e1", "width": 1.0},
-    }
-
-    fig = go.Figure()
-
-    for ano in sorted(anos):
-        d = serie_ano_generica(df, cidade, ano, coluna, suavizar_atual)
-        if d.empty:
-            continue
-        estilo = CORES.get(ano, {"color": "#94a3b8", "width": 1.2})
-        fig.add_trace(go.Scatter(
-            x=d["DOY"],
-            y=d["Valor_plot"],
-            mode="lines",
-            name=str(ano),
-            line=dict(width=estilo["width"], color=estilo["color"]),
-            connectgaps=False,
-            hovertemplate=(
-                "<b>%{customdata[0]}</b> · %{customdata[1]}<br>"
-                "Contrato: %{customdata[2]}<br>"
-                "Físico: %{customdata[3]:.1f} c/bu · CBOT: %{customdata[4]:.1f} c/bu<br>"
-                f"<b>{cfg['hover']}: " + "%{y:.1f} c/bu</b><extra></extra>"
-            ),
-            customdata=d[["Ano", "MesDia", "Contrato_Ref", "Fisico_cents_bu", "CBOT_cents_bu"]].values,
-        ))
-
-    if cfg.get("media", True):
-        media = media_5_anos_generica(df, cidade, ano_base, coluna, janela=suavizar_media)
-        if not media.empty:
-            fig.add_trace(go.Scatter(
-                x=media["DOY"],
-                y=media["Media_5a"],
-                mode="lines",
-                name=f"Média {ano_base-5}–{ano_base-1}",
-                line=dict(width=2.2, dash="dot", color="#b83280"),
-                hovertemplate=f"Média 5 anos<br>{cfg['hover']}: " + "%{y:.1f} c/bu<extra></extra>",
-            ))
-
-    for x, label in cortes_contratos_para_grafico(ano_base):
-        fig.add_vline(
-            x=x,
-            line_width=1.2,
-            line_dash="dash",
-            line_color="rgba(17, 24, 39, 0.65)"
-        )
-        fig.add_annotation(
-            x=x, y=1.045, yref="paper",
-            text=label,
-            showarrow=False,
-            font=dict(color="#111827", size=11, family="Inter, sans-serif"),
-        )
-
-    fig.add_hline(y=0, line_width=0.8, line_color="rgba(107, 114, 128, 0.45)")
-
-    tickvals = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-    ticktext = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-
-    fig.update_layout(
-        template="plotly_white",
-        title=dict(
-            text=f"{cfg['label']} da soja — {cidade} × CBOT",
-            x=0.5,
-            xanchor="center",
-            y=0.975,
-            yanchor="top",
-            font=dict(size=19, color="#111827", family="Inter, sans-serif"),
-        ),
-        height=735,
-        paper_bgcolor="#ffffff",
-        plot_bgcolor="#ffffff",
-        font=dict(color="#374151", family="Inter, sans-serif", size=12),
-        legend=dict(
-            orientation="h",
-            y=-0.055,
-            x=0.5,
-            xanchor="center",
-            yanchor="top",
-            bgcolor="rgba(0,0,0,0)",
-            borderwidth=0,
-            font=dict(size=12, color="#374151"),
-        ),
-        margin=dict(l=62, r=24, t=90, b=68),
-        xaxis=dict(
-            title="",
-            tickmode="array",
-            tickvals=tickvals,
-            ticktext=ticktext,
-            showgrid=False,
-            range=[1, 366],
-            tickfont=dict(size=11, color="#374151"),
-            linecolor="#e8eaed",
-            linewidth=1,
-        ),
-        yaxis=dict(
-            title=cfg["ytitle"],
-            gridcolor="rgba(229, 231, 235, 0.9)",
-            zeroline=False,
-            tickfont=dict(size=11, color="#374151"),
-            title_font=dict(size=11, color="#6b7280"),
-        ),
-        hovermode="x unified",
-        hoverlabel=dict(
-            bgcolor="#ffffff",
-            bordercolor="#e8eaed",
-            font=dict(size=12, color="#111827", family="Inter, sans-serif"),
-        ),
-    )
-
-    fig.add_annotation(
-        text="AgroBasis",
-        xref="paper", yref="paper",
-        x=0.5, y=0.50,
-        showarrow=False,
-        font=dict(size=78, color="rgba(0,0,0,0.035)", family="Inter, sans-serif"),
-        textangle=-20,
     )
     return fig
 
@@ -1007,6 +785,9 @@ def grafico_basis(df, cidade, anos, suavizar_atual, suavizar_media, serie="Basis
 # ============================================================
 # ANALYTICS — Percentil e Z-score
 # ============================================================
+# NOTA: mesmo status de "funcionalidade dormente" — calculada mas nunca
+# exibida na interface atual (painel de percentil/Z-Score já documentado
+# como não exibido na página HTML). Mantida sem alteração de lógica.
 def calcular_analytics(df, cidade):
     d = df[df["Cidade"] == cidade].copy()
     if d.empty:
@@ -1016,10 +797,8 @@ def calcular_analytics(df, cidade):
     basis_atual = atual["Basis_cents_bu"]
     ano_atual = int(atual["Ano"])
 
-    # Usa os últimos 5 anos anteriores como referência, quando disponíveis.
     hist_5a = d[(d["Ano"] >= ano_atual - 5) & (d["Ano"] < ano_atual)]["Basis_cents_bu"].dropna()
 
-    # Fallback: se não existir histórico suficiente, usa todo o histórico anterior à última data.
     if len(hist_5a) < 20:
         hist_5a = d[d["Data"] < atual["Data"]]["Basis_cents_bu"].dropna()
 
@@ -1076,7 +855,7 @@ def grafico_linha_precos_proj(curva_diaria, mensal):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=curva_diaria["data"], y=curva_diaria["preco_rs_saca"],
-        mode="lines", line=dict(color="#102a83", width=3),
+        mode="lines", line=dict(color=VERDE_PRINCIPAL, width=3),
         name="Curva projetada diária",
         hovertemplate="<b>%{x|%d/%m/%Y}</b><br>R$ %{y:.2f}/saca<extra></extra>",
     ))
@@ -1085,8 +864,8 @@ def grafico_linha_precos_proj(curva_diaria, mensal):
         mode="markers+text",
         text=[f"{r}<br>R$ {v:.2f}".replace(".", ",") for r, v in zip(mensal["referencia"], mensal["preco_medio_rs_saca"])],
         textposition="top center",
-        textfont=dict(size=11, color="#111827", family="Inter, sans-serif"),
-        marker=dict(size=10, color="#d97706", line=dict(width=2, color="#fff")),
+        textfont=dict(size=11, color=TEXTO, family="Geist, Arial, sans-serif"),
+        marker=dict(size=10, color=DOURADO, line=dict(width=2, color="#fff")),
         name="Média do mês",
         hovertemplate="<b>%{customdata}</b><br>Média do mês: R$ %{y:.2f}/saca<extra></extra>",
         customdata=mensal["referencia"],
@@ -1094,14 +873,19 @@ def grafico_linha_precos_proj(curva_diaria, mensal):
     fig.update_layout(
         template="plotly_white", height=560,
         title=dict(text="Curva de preço futuro projetado — R$/saca", x=0.02,
-                    font=dict(size=15, color="#111827", family="Inter, sans-serif")),
+                    font=dict(size=15, color=TEXTO, family="Geist, Arial, sans-serif")),
         paper_bgcolor="#ffffff", plot_bgcolor="#ffffff",
-        font=dict(color="#374151", family="Inter, sans-serif", size=12),
+        font=dict(color=TEXTO, family="Geist, Arial, sans-serif", size=12),
         margin=dict(l=55, r=24, t=70, b=50),
-        legend=dict(orientation="h", y=-0.16, x=0.5, xanchor="center", bgcolor="rgba(0,0,0,0)"),
-        xaxis=dict(showgrid=False, title="", linecolor="#e8eaed"),
-        yaxis=dict(title="R$/saca", gridcolor="rgba(229,231,235,0.9)", tickprefix="R$ "),
+        legend=dict(orientation="h", y=-0.16, x=0.5, xanchor="center", bgcolor="rgba(0,0,0,0)", font=dict(color=TEXTO)),
+        xaxis=dict(showgrid=False, title="", linecolor=BORDA, tickfont=dict(color="#6b6b6b")),
+        yaxis=dict(title="R$/saca", gridcolor="rgba(34,34,34,0.08)", tickprefix="R$ ", tickfont=dict(color="#6b6b6b")),
         hovermode="x unified",
+    )
+    fig.add_annotation(
+        text="Fonte: Google Sheets · CBOT · PTAX · Elaboração: AgroBasis",
+        xref="paper", yref="paper", x=1, y=-0.22, showarrow=False,
+        font=dict(size=10.5, color="#9a9a9a", family="Geist, Arial, sans-serif"), xanchor="right",
     )
     return fig
 
@@ -1110,23 +894,23 @@ def grafico_barras_precos_proj(mensal):
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=mensal["referencia"], y=mensal["preco_medio_rs_saca"],
-        marker_color="#16a34a",
+        marker_color=VERDE_PRINCIPAL,
         text=[f"R$ {v:.2f}".replace(".", ",") for v in mensal["preco_medio_rs_saca"]],
         textposition="outside",
-        textfont=dict(size=13, color="#111827", family="Inter, sans-serif"),
+        textfont=dict(size=13, color=TEXTO, family="Geist, Arial, sans-serif"),
         hovertemplate="<b>%{x}</b><br>R$ %{y:.2f}/saca<extra></extra>",
     ))
     y_max = mensal["preco_medio_rs_saca"].max()
     fig.update_layout(
         template="plotly_white", height=520,
         title=dict(text="Projeção de preço médio por mês futuro — R$/saca", x=0.02,
-                    font=dict(size=15, color="#111827", family="Inter, sans-serif")),
+                    font=dict(size=15, color=TEXTO, family="Geist, Arial, sans-serif")),
         paper_bgcolor="#ffffff", plot_bgcolor="#ffffff",
-        font=dict(color="#374151", family="Inter, sans-serif", size=12),
+        font=dict(color=TEXTO, family="Geist, Arial, sans-serif", size=12),
         margin=dict(l=55, r=24, t=70, b=50),
-        xaxis=dict(title="", showgrid=False, linecolor="#e8eaed"),
-        yaxis=dict(title="R$/saca", gridcolor="rgba(229,231,235,0.9)", tickprefix="R$ ",
-                    range=[0, y_max * 1.18]),
+        xaxis=dict(title="", showgrid=False, linecolor=BORDA, tickfont=dict(color=TEXTO)),
+        yaxis=dict(title="R$/saca", gridcolor="rgba(34,34,34,0.08)", tickprefix="R$ ",
+                    range=[0, y_max * 1.18], tickfont=dict(color="#6b6b6b")),
         showlegend=False,
     )
     return fig
@@ -1194,13 +978,12 @@ def montar_projecao_completa(_df_basis_hist_proj, ultimo_cbot_hist, cidade, mese
 # UI
 # ============================================================
 
-# Barra de topo
-st.markdown("""
-<div class="topbar">
-    <div class="topbar-brand">
-        🌾 Agro<span>Basis</span>
-        <div class="topbar-tag">Soja CBOT</div>
-    </div>
+# Cabeçalho — mesmo padrão dos dashboards USDA (badge + título + subtítulo)
+st.markdown(f"""
+<div class="page-badge">Basis · Atualização diária</div>
+<div class="page-header">
+    <div class="page-header-title">Basis Soja Brasil</div>
+    <div class="page-header-subtitle">Acompanhe o comportamento do basis da soja nas principais regiões produtoras brasileiras, comparando preços físicos com contratos futuros da CBOT e projeções futuras.</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1219,31 +1002,32 @@ cidades = sorted(df_basis["Cidade"].dropna().unique())
 anos_disponiveis = sorted(df_basis["Ano"].dropna().unique().astype(int).tolist())
 
 # ── Filtros em barra horizontal compacta ──
-with st.container():
-    col1, col2, col3, col4, col5 = st.columns([2.0, 1.8, 1.0, 1.0, 0.75])
-    with col1:
-        cidade_default = "Rio Grande" if "Rio Grande" in cidades else ("Santa Rosa" if "Santa Rosa" in cidades else cidades[0])
-        cidade_sel = st.selectbox("Localidade", cidades, index=cidades.index(cidade_default), label_visibility="visible")
-    with col2:
-        default_anos = anos_disponiveis[-2:] if len(anos_disponiveis) >= 2 else anos_disponiveis
-        anos_sel = st.multiselect("Anos", anos_disponiveis, default=default_anos, label_visibility="visible")
-    with col3:
-        suavizar_atual = st.slider("Suavização", min_value=1, max_value=10, value=1, step=1)
-    with col4:
-        suavizar_media = st.slider("Suavização média", min_value=3, max_value=31, value=11, step=2)
-    with col5:
-        st.write("")
-        st.write("")
-        if st.button("↺ Atualizar", use_container_width=True):
-            st.cache_data.clear()
-            st.cache_resource.clear()
-            st.rerun()
+st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
+col1, col2, col3, col4, col5 = st.columns([2.0, 1.8, 1.0, 1.0, 0.75])
+with col1:
+    cidade_default = "Rio Grande" if "Rio Grande" in cidades else ("Santa Rosa" if "Santa Rosa" in cidades else cidades[0])
+    cidade_sel = st.selectbox("Localidade", cidades, index=cidades.index(cidade_default), label_visibility="visible")
+with col2:
+    default_anos = anos_disponiveis[-2:] if len(anos_disponiveis) >= 2 else anos_disponiveis
+    anos_sel = st.multiselect("Anos", anos_disponiveis, default=default_anos, label_visibility="visible")
+with col3:
+    suavizar_atual = st.slider("Suavização", min_value=1, max_value=10, value=1, step=1)
+with col4:
+    suavizar_media = st.slider("Suavização média", min_value=3, max_value=31, value=11, step=2)
+with col5:
+    st.write("")
+    st.write("")
+    if st.button("Atualizar", use_container_width=True):
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 if not anos_sel:
     st.warning("Selecione pelo menos um ano.")
     st.stop()
 
-# ── KPI cards compactos ──
+# ── KPI cards ──
 atual, ultima_data = resumo_atual(df_basis[df_basis["Cidade"] == cidade_sel])
 if not atual.empty:
     row_atual = atual.sort_values("Data").iloc[-1]
@@ -1362,20 +1146,20 @@ with tab_projecao:
                                                                 "filename": f"projecao_{cidade_sel}"}})
             st.markdown('</div>', unsafe_allow_html=True)
 
-            with st.expander("⚙️ Ver / editar curvas usadas no cálculo (dólar e CBOT)"):
+            with st.expander("Curvas Utilizadas"):
                 st.markdown("**Dólar futuro (DOL)**")
                 st.dataframe(resultado["curva_dol"], use_container_width=True, hide_index=True)
                 st.markdown("**CBOT (ZS, US$/bushel)**")
                 st.dataframe(resultado["curva_cbot"], use_container_width=True, hide_index=True)
 
-            with st.expander("ℹ️ Metodologia da projeção"):
+            with st.expander("Metodologia"):
                 st.markdown(f"""
 - **Preço projetado (R$/saca)** = [CBOT futuro (US$/bushel) + basis projetado] × 2,2046 × câmbio futuro (R$/US$)
 - **Basis projetado**: média das observações de basis de **{cidade_sel}** dentro de uma janela de ±{dias_janela_basis} dias-calendário em torno da mesma data, nos últimos {anos_janela_basis} anos
 - **Dólar futuro**: contratos DOL da B3 via TradingView, interpolados por dias úteis (fallback manual se a busca falhar)
 - **CBOT futuro**: contratos ZS via TradingView, mesma lógica de interpolação
 
-> ⚠️ Simulador informativo/educacional. Não representa recomendação de investimento nem preço negociável de hedge.
+> **Atenção:** Simulador informativo/educacional. Não representa recomendação de investimento nem preço negociável de hedge.
                 """)
 
 with tab_mapa:
